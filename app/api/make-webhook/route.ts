@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { company_name, email, monday_item_id, system_ids } = parsed.data
-  const supabase = createServiceClient()
+  const supabase = await createServiceClient()
 
   // ── Create auth user ──────────────────────────────────────────────────────
   const { data: userResponse, error: userErr } = await supabase.auth.admin.createUser({
