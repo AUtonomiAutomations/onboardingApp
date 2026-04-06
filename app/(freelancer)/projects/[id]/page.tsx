@@ -19,9 +19,10 @@ const fileTypeLabels: Record<string, string> = {
 export default async function FreelancerProjectDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const supabase = await createClient()
+  const { id } = await params
   const { data: { user } } = await supabase.auth.getUser()
 
   // Verify freelancer is assigned to this project
@@ -29,7 +30,7 @@ export default async function FreelancerProjectDetailPage({
     .from("freelancer_assignments")
     .select("project_id")
     .eq("freelancer_id", user!.id)
-    .eq("project_id", params.id)
+    .eq("project_id", id)
     .single()
 
   if (!assignment) notFound()
@@ -38,7 +39,7 @@ export default async function FreelancerProjectDetailPage({
   const { data: projectRaw } = await supabase
     .from("projects")
     .select("id, status, clients(id, company_name)")
-    .eq("id", params.id)
+    .eq("id", id)
     .single()
 
   if (!projectRaw) notFound()
@@ -50,20 +51,20 @@ export default async function FreelancerProjectDetailPage({
   const { data: pSystemsRaw } = await supabase
     .from("project_systems")
     .select("system_id, display_order, systems(id, name, credential_fields)")
-    .eq("project_id", params.id)
+    .eq("project_id", id)
     .order("display_order")
 
   const { data: credentialsRaw } = await supabase
     .from("credentials")
     .select("id, system_id, field_values, status")
-    .eq("project_id", params.id)
+    .eq("project_id", id)
     .eq("status", "submitted")
 
   // Files visible to freelancer
   const { data: filesRaw } = await supabase
     .from("files")
     .select("id, file_name, storage_path, file_type, uploaded_at")
-    .eq("project_id", params.id)
+    .eq("project_id", id)
     .eq("is_visible_to_freelancer", true)
     .order("uploaded_at", { ascending: false })
 
@@ -71,7 +72,7 @@ export default async function FreelancerProjectDetailPage({
   const { data: tasksRaw } = await (supabase as any)
     .from("project_tasks")
     .select("id, board_name, task_name, trigger_type, display_order, is_done, done_at")
-    .eq("project_id", params.id)
+    .eq("project_id", id)
     .order("display_order")
 
   const pSystems = (pSystemsRaw ?? []) as any[]
@@ -162,7 +163,7 @@ export default async function FreelancerProjectDetailPage({
       </Card>
 
       {/* Automation Tasks */}
-      <ProjectTasks projectId={params.id} initialTasks={tasks} />
+      <ProjectTasks projectId={id} initialTasks={tasks} />
 
       {/* Files */}
       <Card className="border-slate-200">

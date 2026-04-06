@@ -11,9 +11,9 @@ const STATUS_VARIANT: Record<string, any> = {
   pending: "outline", in_progress: "warning", completed: "success",
 }
 
-export default async function AdminClientDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
-  const clientId = params.id
+  const { id: clientId } = await params
 
   // ── Fetch client ────────────────────────────────────────────────────────────
   const { data: client } = await supabase
