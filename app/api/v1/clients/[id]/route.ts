@@ -9,9 +9,11 @@ const updateSchema = z.object({
   monday_item_id: z.string().optional(),
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authErr = requireApiSecret(req)
   if (authErr) return authErr
+
+  const { id } = await params
 
   let body: unknown
   try { body = await req.json() } catch {
@@ -26,10 +28,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "No fields to update" }, { status: 400 })
 
   const supabase = await createServiceClient()
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("clients")
     .update(parsed.data)
-    .eq("id", params.id)
+    .eq("id", id)
     .select("id, company_name, status, monday_item_id")
     .single()
 

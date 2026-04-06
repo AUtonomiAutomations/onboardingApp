@@ -2,9 +2,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireApiSecret, createServiceClient } from "../../../_lib/auth"
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authErr = requireApiSecret(req)
   if (authErr) return authErr
+
+  const { id } = await params
 
   let body: any
   try { body = await req.json() } catch {
@@ -23,11 +25,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   // Verify freelancer exists
   const { data: profile } = await supabase
-    .from("profiles").select("id").eq("id", params.id).eq("role", "freelancer").single()
+    .from("profiles").select("id").eq("id", id).eq("role", "freelancer").single()
   if (!profile) return NextResponse.json({ error: "Freelancer not found" }, { status: 404 })
 
   const ext = file_name.includes(".") ? file_name.split(".").pop() : ""
-  const storagePath = `freelancers/${params.id}/${Date.now()}-${file_name}`
+  const storagePath = `freelancers/${id}/${Date.now()}-${file_name}`
 
   const { error: uploadErr } = await supabase.storage
     .from("client-files")
@@ -35,10 +37,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (uploadErr) return NextResponse.json({ error: uploadErr.message }, { status: 500 })
 
-  const { data: record, error: dbErr } = await supabase
+  const { data: record, error: dbErr } = await (supabase as any)
     .from("freelancer_files")
     .insert({
-      freelancer_id: params.id,
+      freelancer_id: id,
       file_name,
       storage_path:  storagePath,
       file_type,

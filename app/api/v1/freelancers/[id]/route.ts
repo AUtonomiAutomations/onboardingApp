@@ -9,9 +9,11 @@ const updateSchema = z.object({
   active:    z.boolean().optional(),   // false = ban user in Auth
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authErr = requireApiSecret(req)
   if (authErr) return authErr
+
+  const { id } = await params
 
   let body: unknown
   try { body = await req.json() } catch {
@@ -27,9 +29,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Update auth user if needed
   if (active === false) {
-    await supabase.auth.admin.updateUserById(params.id, { ban_duration: "876600h" }) // ~100 years
+    await supabase.auth.admin.updateUserById(id, { ban_duration: "876600h" }) // ~100 years
   } else if (active === true) {
-    await supabase.auth.admin.updateUserById(params.id, { ban_duration: "none" })
+    await supabase.auth.admin.updateUserById(id, { ban_duration: "none" })
   }
 
   const profileUpdate: any = {}
@@ -37,13 +39,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (email)     profileUpdate.email     = email
 
   if (Object.keys(profileUpdate).length > 0) {
-    await supabase.from("profiles").update(profileUpdate).eq("id", params.id)
+    await (supabase as any).from("profiles").update(profileUpdate).eq("id", id)
   }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, email, role")
-    .eq("id", params.id)
+    .eq("id", id)
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

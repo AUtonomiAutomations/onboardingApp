@@ -9,9 +9,11 @@ const schema = z.object({
   assigned_by:    z.string().uuid().optional(),
 })
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const authErr = requireApiSecret(req)
   if (authErr) return authErr
+
+  const { id } = await params
 
   let body: unknown
   try { body = await req.json() } catch {
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     .from("profiles").select("id").eq("id", freelancer_id).eq("role", "freelancer").single()
   if (!profile) return NextResponse.json({ error: "Freelancer not found" }, { status: 404 })
 
-  const payload: any = { project_id: params.id, freelancer_id }
+  const payload: any = { project_id: id, freelancer_id }
   if (payment_amount !== undefined) payload.payment_amount = payment_amount
   if (assigned_by)                  payload.assigned_by    = assigned_by
 
