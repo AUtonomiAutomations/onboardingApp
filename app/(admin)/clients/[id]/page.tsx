@@ -13,10 +13,11 @@ const STATUS_VARIANT: Record<string, any> = {
 
 export default async function AdminClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
+  const sb = supabase as any
   const { id: clientId } = await params
 
   // ── Fetch client ────────────────────────────────────────────────────────────
-  const { data: client } = await supabase
+  const { data: client } = await sb
     .from("clients")
     .select("id, company_name, status, monday_item_id, created_at, profiles!clients_user_id_fkey(email, full_name)")
     .eq("id", clientId)
@@ -25,7 +26,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   if (!client) notFound()
 
   // ── Fetch project ───────────────────────────────────────────────────────────
-  const { data: projects } = await supabase
+  const { data: projects } = await sb
     .from("projects")
     .select("id, name, status")
     .eq("client_id", clientId)
@@ -37,20 +38,20 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   // ── Fetch systems + credentials ─────────────────────────────────────────────
   let systems: any[] = []
   if (project) {
-    const { data: pSystems } = await supabase
+    const { data: pSystems } = await sb
       .from("project_systems")
       .select("system_id, display_order, systems(id, name, logo_url, credential_fields)")
       .eq("project_id", project.id)
       .order("display_order")
 
-    const { data: credentials } = await supabase
+    const { data: credentials } = await sb
       .from("credentials")
       .select("system_id, field_values, status, submitted_at")
       .eq("project_id", project.id)
 
     systems = (pSystems ?? []).map((ps: any) => {
       const sys = ps.systems
-      const cred = credentials?.find((c) => c.system_id === ps.system_id)
+      const cred = credentials?.find((c: any) => c.system_id === ps.system_id)
       return {
         system_id:         ps.system_id,
         system_name:       sys?.name ?? "",
@@ -62,21 +63,21 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   }
 
   // ── Fetch files ─────────────────────────────────────────────────────────────
-  const { data: files } = await supabase
+  const { data: files } = await sb
     .from("files")
     .select("id, file_name, storage_path, file_type, is_visible_to_freelancer, uploaded_at")
     .eq("client_id", clientId)
     .order("uploaded_at", { ascending: false })
 
   // ── Fetch all systems (for setup tab) ───────────────────────────────────────
-  const { data: allSystems } = await supabase
+  const { data: allSystems } = await sb
     .from("systems")
     .select("id, name, logo_url")
     .order("name")
 
   // ── Fetch automation tasks ──────────────────────────────────────────────────
   const { data: tasks } = project
-    ? await (supabase as any)
+    ? await sb
         .from("project_tasks")
         .select("id, board_name, task_name, trigger_type, display_order, is_done, done_at, admin_status")
         .eq("project_id", project.id)
@@ -84,14 +85,14 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
     : { data: [] }
 
   // ── Fetch freelancers + current assignment ──────────────────────────────────
-  const { data: freelancers } = await supabase
+  const { data: freelancers } = await sb
     .from("profiles")
     .select("id, full_name, email")
     .eq("role", "freelancer")
     .order("full_name")
 
   const assignedId = project
-    ? (await supabase
+    ? (await sb
         .from("freelancer_assignments")
         .select("freelancer_id")
         .eq("project_id", project.id)
@@ -109,9 +110,9 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
             {project ? `פרויקט: ${project.name}` : "אין פרויקט פעיל"}
             {client.monday_item_id && ` · Monday ID: ${client.monday_item_id}`}
           </p>
-          {(client as any).profiles?.email && (
+          {client.profiles?.email && (
             <p className="text-sm text-muted-foreground mt-0.5">
-              אימייל: {(client as any).profiles.email}
+              אימייל: {client.profiles.email}
             </p>
           )}
         </div>
