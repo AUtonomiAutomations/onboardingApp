@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" fill="none">
+  <!-- Left bar: dark purple, taller, tilted -->
+  <polygon points="8,8 18,8 12,48 2,48" fill="#4C1D95"/>
+  <!-- Middle bar: medium purple, shorter -->
+  <polygon points="26,14 36,14 30,48 20,48" fill="#7C3AED"/>
+  <!-- Right bar: lighter purple/lavender, medium height -->
+  <polygon points="44,10 54,10 48,48 38,48" fill="#A78BFA"/>
+  <!-- "make" text -->
+  <text x="68" y="40" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-weight="800" font-size="30" fill="#111827">make</text>
+</svg>

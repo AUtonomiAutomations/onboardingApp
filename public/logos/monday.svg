@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 48">
+  <!-- monday.com logo: three dots + text -->
+  <circle cx="12" cy="30" r="10" fill="#FF3D57"/>
+  <circle cx="36" cy="30" r="10" fill="#FFCB00"/>
+  <circle cx="60" cy="30" r="10" fill="#00CA72"/>
+  <text x="76" y="37" font-family="'Poppins','Inter',Arial,sans-serif" font-weight="800" font-size="22" fill="#323338">mo</text>
+</svg>
