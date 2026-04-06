@@ -145,7 +145,7 @@ export function SystemCredentialForm({
               </SelectTrigger>
               <SelectContent>
                 {(field.options ?? []).map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
