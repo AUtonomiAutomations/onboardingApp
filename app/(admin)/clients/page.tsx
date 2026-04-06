@@ -18,7 +18,7 @@ const STATUS_VARIANT: Record<string, any> = {
 export default async function AdminClientsPage() {
   const supabase = await createClient()
 
-  const { data: clients } = await supabase
+  const { data: clients } = await (supabase as any)
     .from("clients")
     .select("id, company_name, status, created_at, monday_item_id")
     .order("created_at", { ascending: false })
@@ -46,7 +46,7 @@ export default async function AdminClientsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(clients ?? []).map((c) => (
+              {(clients ?? []).map((c: any) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.company_name}</TableCell>
                   <TableCell>
