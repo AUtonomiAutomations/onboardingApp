@@ -8,6 +8,7 @@ import {
   Puzzle,
   Zap,
   FileBarChart,
+  Link2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
@@ -33,6 +34,11 @@ const navItems = [
     label: "דוחות",
     href: "/reports",
     icon: FileBarChart,
+  },
+  {
+    label: "כלים מומלצים",
+    href: "/affiliate-tools",
+    icon: Link2,
   },
 ]
 
