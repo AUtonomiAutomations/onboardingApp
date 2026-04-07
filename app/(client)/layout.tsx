@@ -3,9 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { TopNav } from "@/components/dashboard/top-nav"
 
 const clientLinks = [
-  { label: "Onboarding",     href: "/onboarding" },
-  { label: "My Files",       href: "/files" },
-  { label: "כלים מומלצים",  href: "/tools" },
+  { label: "Onboarding", href: "/onboarding" },
+  { label: "My Files",   href: "/files" },
 ]
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {

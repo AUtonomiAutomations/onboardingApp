@@ -7,9 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CheckCircle2, Circle } from "lucide-react"
+import { CheckCircle2, Circle, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { CredentialField } from "@/types/database.types"
+
+interface AffiliateTool {
+  name: string
+  affiliate_url: string
+  color: string
+  logo_url: string | null
+}
 
 interface SystemStep {
   system_id: string
@@ -18,6 +25,7 @@ interface SystemStep {
   display_order: number
   credential_fields: CredentialField[]
   credential: { id: string; field_values: Record<string, string>; status: "draft" | "submitted" } | null
+  affiliate_tool: AffiliateTool | null
 }
 
 export default function ClientOnboardingPage() {
@@ -72,6 +80,20 @@ export default function ClientOnboardingPage() {
         .eq("project_id", project.id)
         .eq("client_id", client.id)
 
+      // Get affiliate tools for matching
+      const { data: affiliateTools } = await (supabase as any)
+        .from("affiliate_tools")
+        .select("name, affiliate_url, color, logo_url")
+        .eq("is_active", true)
+
+      const findAffiliateTool = (systemName: string): AffiliateTool | null => {
+        if (!affiliateTools) return null
+        const lower = systemName.toLowerCase()
+        return affiliateTools.find((t: AffiliateTool) =>
+          lower.includes(t.name.toLowerCase()) || t.name.toLowerCase().includes(lower)
+        ) ?? null
+      }
+
       const loadedSteps: SystemStep[] = (pSystems ?? []).map((ps: any) => {
         const sys = ps.systems
         const cred = credentials?.find((c) => c.system_id === ps.system_id)
@@ -84,6 +106,7 @@ export default function ClientOnboardingPage() {
           credential:        cred
             ? { id: cred.id, field_values: cred.field_values as Record<string, string>, status: cred.status as any }
             : null,
+          affiliate_tool:    findAffiliateTool(sys?.name ?? ""),
         }
       })
 
@@ -287,6 +310,32 @@ export default function ClientOnboardingPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-5">
+            {steps[activeStep].affiliate_tool && steps[activeStep].credential?.status !== "submitted" && (
+              <a
+                href={steps[activeStep].affiliate_tool!.affiliate_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 mb-5 rounded-xl border-2 border-primary/20 bg-primary/5 px-4 py-3 hover:bg-primary/10 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  {steps[activeStep].affiliate_tool!.logo_url ? (
+                    <img src={steps[activeStep].affiliate_tool!.logo_url!} alt="" className="h-6 w-6 rounded object-contain" />
+                  ) : (
+                    <div
+                      className="h-6 w-6 rounded flex items-center justify-center text-white text-xs font-bold shrink-0"
+                      style={{ backgroundColor: steps[activeStep].affiliate_tool!.color }}
+                    >
+                      {steps[activeStep].affiliate_tool!.name[0]}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-primary">אין לך חשבון ב-{steps[activeStep].system_name}?</p>
+                    <p className="text-xs text-muted-foreground">הירשם דרך הלינק שלנו וקבל הטבות מיוחדות</p>
+                  </div>
+                </div>
+                <ExternalLink className="h-4 w-4 text-primary shrink-0" />
+              </a>
+            )}
             {steps[activeStep].credential_fields.length === 0 ? (
               <p className="text-sm text-muted-foreground">אין שדות להזנה עבור מערכת זו.</p>
             ) : (
